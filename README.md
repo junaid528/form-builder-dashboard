@@ -166,3 +166,4 @@ Potential architectural additions to elevate the form builder's capabilities:
 *   **Rich Multilingual Localization**: Built-in support for multiple languages with quick translation strings in the JSON package.
 *   **Custom ReDoS & Rate Limiting Integration**: Add deep rate limiter configurations and field-level RegEx match controls directly through the settings layout.
 # form-builder-dashboard
+# form-builder-dashboard
