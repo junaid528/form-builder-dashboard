@@ -1,0 +1,1210 @@
+@extends('layouts.admin')
+
+@section('content')
+<div class="content-wrapper">
+    <div class="container-fluid">
+        <div class="card shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="card-body p-4">
+
+                <!-- Form Titling & Details Header -->
+                <div class="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div style="flex: 1; min-width: 280px; max-width: 65%;">
+                        <input type="text" id="formTitle" maxlength="200"
+                               class="form-control form-control-lg font-weight-bold mb-1"
+                               placeholder="Untitled Form" style="border: 1px solid #cbd5e1; border-radius: 8px; font-size: 24px; padding: 10px 15px;">
+
+                        <small class="text-muted d-block mb-2">
+                            <span id="titleCount">0</span>/200 characters
+                        </small>
+
+                        <div class="text-secondary" style="font-size: 13px; font-weight: 500;">
+                            Submission URL: <span id="displaySubmissionUrl" class="text-primary font-weight-bold">/api/submissions/submit</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs & Preview Mode Switcher -->
+                <ul class="nav nav-tabs mb-4 flex-row align-items-center" style="border-bottom: 2px solid #e2e8f0;">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="editorTab" href="javascript:void(0)" onclick="switchTab('editor')" style="font-weight: 600; font-size: 14px; padding: 12px 18px; border:0; border-bottom: 3px solid #3182ce; color: #2b6cb0;">Form Editor</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary" id="settingsTab" href="javascript:void(0)" onclick="switchTab('settings')" style="font-weight: 600; font-size: 14px; padding: 12px 18px; border:0;">Settings</a>
+                    </li>
+                    <li class="nav-item ml-auto ms-auto" style="margin-left: auto;">
+                        <button id="previewBtn" class="btn btn-outline-primary btn-sm px-3 py-2 font-weight-bold" onclick="togglePreviewMode()" style="border-radius: 8px; border-width: 2px; transition: all 0.2s;">👁️ Preview Form</button>
+                    </li>
+                </ul>
+
+                <!-- FORM BUILDER VIEW -->
+                <div id="editorView" class="row">
+                    <!-- Drop Canvas Area -->
+                    <div class="col-md-8 mb-4 mb-md-0" id="canvasCol">
+                        <div id="dropCanvas" class="border border-dashed rounded p-4 bg-light shadow-xs d-flex flex-column" style="min-height: 480px; transition: all 0.2s ease;">
+                            <div id="emptyState" class="text-center text-muted my-auto py-5">
+                                <span style="font-size: 32px; display:block;" class="mb-2">📋</span>
+                                Drag elements from the palette panel to build your custom form structure
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Options & Toolbar Side Panel -->
+                    <div class="col-md-4" id="rightPanelCol">
+                        <div class="card border shadow-xs" style="border-radius: 12px; border-color: #e2e8f0 !important; background: #fff;">
+                            <div class="card-body p-4">
+
+                                <ul class="nav nav-pills mb-3 d-flex" style="gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
+                                    <li class="nav-item flex-fill">
+                                        <button id="addFieldsTab" class="nav-link active btn-sm font-weight-bold w-100 text-center py-2" type="button" style="border-radius: 6px; font-size: 13px;">Add Fields</button>
+                                    </li>
+                                    <li class="nav-item flex-fill">
+                                        <button id="fieldOptionsTab" class="nav-link btn-sm font-weight-bold w-100 text-center text-secondary py-2" type="button" style="border-radius: 6px; font-size: 13px;">Field Options</button>
+                                    </li>
+                                </ul>
+
+                                <!-- Palette Panel -->
+                                <div id="addFieldsPanel" class="row g-2">
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="text">Text Input</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="textarea">Text Area</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="number">Number Input</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="email">Email Input</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="phone">Phone Input</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="dropdown">Dropdown</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="radio">Radio Buttons</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="checkbox">Checkboxes</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="date">Date Picker</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="file">File Upload</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="title">Title</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="description">Description</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="newline">New Line</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="pagebreak">Page Break</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="hidden">Hidden Field</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="state">State</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="city">City</div></div>
+                                    <div class="col-6"><div class="field-tile" draggable="true" data-type="statecity">State & City</div></div>
+                                </div>
+
+                                <!-- Field Customization Options -->
+                                <div id="fieldOptionsPanel" class="d-none">
+                                    <h6 class="font-weight-bold mb-3" style="font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; color: #1e293b;">Field Customization Options</h6>
+
+                                    <div class="mb-2">
+                                        <label class="form-label font-weight-bold mb-1" style="font-size: 12px; color: #475569;">Label Name</label>
+                                        <input type="text" id="optionLabel" class="form-control form-control-sm" style="border-radius: 6px;">
+                                    </div>
+
+                                    <div id="placeholderWrapper" class="mb-2">
+                                        <label class="form-label font-weight-bold mb-1" style="font-size: 12px; color: #475569;">Placeholder Value</label>
+                                        <input type="text" id="optionPlaceholder" class="form-control form-control-sm" style="border-radius: 6px;">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label class="form-label font-weight-bold mb-1" style="font-size: 12px; color: #475569;">CSS Classes</label>
+                                        <input type="text" id="optionClass" class="form-control form-control-sm" placeholder="e.g. mb-3 col-6" style="border-radius: 6px;">
+                                    </div>
+
+                                    <div class="form-check mb-3 mt-2">
+                                        <input type="checkbox" id="optionRequired" class="form-check-input" style="cursor: pointer;">
+                                        <label class="form-check-label font-weight-bold" for="optionRequired" style="font-size: 13px; color: #475569; cursor: pointer; user-select: none;">Mark as Required</label>
+                                    </div>
+
+                                    <!-- Numeric Boundaries & Default value configs -->
+                                    <div id="textConfigWrapper" class="mb-3">
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <label class="form-label font-weight-bold mb-1" style="font-size: 11px; color:#475569;">Min Length</label>
+                                                <input type="number" id="optionMin" class="form-control form-control-sm mb-0" style="border-radius: 6px;">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label font-weight-bold mb-1" style="font-size: 11px; color:#475569;">Max Length</label>
+                                                <input type="number" id="optionMax" class="form-control form-control-sm mb-0" style="border-radius: 6px;">
+                                            </div>
+                                        </div>
+
+                                        <label class="form-label font-weight-bold mb-1" style="font-size: 12px; color:#475569;">Default Value</label>
+                                        <input type="text" id="optionDefault" class="form-control form-control-sm" style="border-radius: 6px;">
+                                    </div>
+
+                                    <!-- Multiselect choices list -->
+                                    <div id="optionsWrapper" class="d-none mb-3">
+                                        <label class="form-label font-weight-bold mb-1" style="font-size: 12px; color: #475569;">Options List</label>
+                                        <div id="optionsList" class="mb-2" style="max-height: 180px; overflow-y: auto;"></div>
+                                        <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="addOption()" style="border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                            + Add New Choice
+                                        </button>
+                                    </div>
+
+                                    <button class="btn btn-danger btn-sm w-100 mt-3" onclick="deleteField(selectedFieldId)" style="border-radius: 8px; font-weight: 600;">
+                                        🗑️ Delete Field Element
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS VIEW -->
+                <div id="settingsView" class="row d-none">
+                    <div class="col-md-12">
+                        <div class="card border" style="border-radius: 12px; border-color: #e2e8f0 !important; background: #fff;">
+                            <div class="card-header bg-white py-3" style="border-bottom: 1px solid #e2e8f0;">
+                                <h5 class="mb-0 font-weight-bold" style="font-size: 16px; color: #1e293b;">Submission Metadata Settings</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold" style="font-size: 13px; color: #334155;">Submission Destination URL</label>
+                                        <input type="text" id="settingsSubmissionUrl" class="form-control" placeholder="/api/submissions/submit" style="border-radius: 8px; border-color: #cbd5e1;">
+                                        <small class="text-muted">The API endpoint route to which the form payload will submit.</small>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label font-weight-bold" style="font-size: 13px; color: #334155;">Submit Button Accent Label</label>
+                                        <input type="text" id="settingsSubmitLabel" class="form-control" placeholder="Submit" style="border-radius: 8px; border-color: #cbd5e1;">
+                                        <small class="text-muted">The customized action word displayed on the preview submissions trigger.</small>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label font-weight-bold" style="font-size: 13px; color: #334155;">Post-Submit Redirect Target URI</label>
+                                        <input type="text" id="settingsRedirectUrl" class="form-control" placeholder="/" style="border-radius: 8px; border-color: #cbd5e1;">
+                                        <small class="text-muted">The internal address route to redirect users toward post success confirmation.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Footers -->
+                <div class="d-flex justify-content-between mt-4 pt-3 border-top" style="border-top-color: #e2e8f0 !important;">
+                    <button class="btn btn-outline-danger px-4" id="cancelBtn" style="border-radius: 8px; font-weight: 600; padding: 10px 20px;">Reset Editor State</button>
+                    <button class="btn btn-primary px-4" id="nextBtn" style="border-radius: 8px; font-weight: 600; padding: 10px 20px;">Compile Form JSON</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: JSON Export Output -->
+<div class="modal fade" id="jsonModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border:0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-dark text-white py-3 border-0">
+                <h5 class="modal-title font-weight-bold" style="font-size: 16px;">📋 Compiled Schemas & Attributes</h5>
+                <button type="button" class="btn-close close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="border:0; background:transparent; font-size: 24px; color:#fff; opacity: 0.82;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 bg-slate-900" style="background: #1e293b; color: #f8fafc;">
+                <p class="text-xs text-slate-400 mb-3" style="color: #94a3b8; font-size: 13px;">Copy this fully configured JSON blueprint schema to dynamically generate your frontend layout.</p>
+                <pre id="jsonOutput" style="max-height:420px; overflow:auto; background:#0f172a; color:#34d399; padding:18px; border-radius:8px; font-family: monospace; font-size: 13px; line-height: 1.5; border: 1px solid #334155; margin-bottom: 0;"></pre>
+            </div>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal" style="border-radius: 6px; font-weight: 600;">Dismiss</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Delete Confirmation -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border:0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title font-weight-bold" style="font-size: 16px; color:#ef4444;">🗑️ Confirm Element Deletion</h5>
+                <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="border:0; background:transparent; font-size: 20px;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="font-size: 14px; color: #475569; border-bottom: 1px solid #f1f5f9;">
+                Are you sure you want to delete this custom form element? This modification cannot be undone and will reflect across saved state parameters.
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary btn-sm px-3 py-2" data-dismiss="modal" data-bs-dismiss="modal" style="font-weight: 600; border-radius: 8px;">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm px-3 py-2" id="confirmDeleteBtn" data-dismiss="modal" data-bs-dismiss="modal" style="font-weight: 600; border-radius: 8px;">Confirm Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Submission Success -->
+<div class="modal fade" id="submitSuccessModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border:0; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-success text-white py-3 border-0">
+                <h5 class="modal-title font-weight-bold" style="font-size: 16px; color:#fff;">🎉 Form Submission Successful</h5>
+                <button type="button" class="btn-close close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="border:0; background:transparent; font-size: 24px; color:#fff; opacity: 0.82;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="color: #1e293b; font-size: 14px;">
+                <p class="font-weight-bold mb-3">Simulated form submitted successfully!</p>
+                <div class="p-3 rounded" style="font-size: 13px; border: 1px solid #e2e8f0; background-color: #f8fafc;">
+                    <div class="mb-2"><strong>Backend Destination URL:</strong> <span id="successDestUrl" class="text-primary font-weight-medium"></span></div>
+                    <div><strong>Redirect Success Target URI:</strong> <span id="successRedirectUrl" class="text-primary font-weight-medium"></span></div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-0 py-2">
+                <button type="button" class="btn btn-success btn-sm px-3" data-dismiss="modal" data-bs-dismiss="modal" style="border-radius: 6px; font-weight: 600;">Great!</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Clear Confirmation -->
+<div class="modal fade" id="clearConfirmModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 12px; overflow: hidden; border:0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+            <div class="modal-header bg-white border-bottom py-3">
+                <h5 class="modal-title font-weight-bold" style="font-size: 16px; color:#ef4444;">📋 Confirm Form Reset</h5>
+                <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close" style="border:0; background:transparent; font-size: 20px;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="font-size: 14px; color: #475569; border-bottom: 1px solid #f1f5f9;">
+                Are you sure you want to clear the form? This action will reset all your current fields and form settings to their initial configurations.
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary btn-sm px-3 py-2" data-dismiss="modal" data-bs-dismiss="modal" style="font-weight: 600; border-radius: 8px;">Cancel</button>
+                <button type="button" class="btn btn-danger btn-sm px-3 py-2" id="confirmClearBtn" data-dismiss="modal" data-bs-dismiss="modal" style="font-weight: 600; border-radius: 8px;">Reset Form</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .field-tile {
+        border: 1px solid #e2e8f0;
+        background: #fff;
+        padding: 10px 12px;
+        border-radius: 8px;
+        cursor: grab;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: #475569;
+        transition: all 0.2s ease;
+        user-select: none;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    }
+
+    .field-tile:hover {
+        background: #eff6ff;
+        border-color: #3b82f6;
+        color: #1d4ed8;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.08);
+    }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
+
+    .content-wrapper {
+        margin-left: 260px !important;
+        padding: 24px;
+        padding-top: 60px !important;
+        min-height: 100vh;
+        box-sizing: border-box;
+    }
+
+    @media (max-width: 1024px) {
+        .content-wrapper {
+            margin-left: 0 !important;
+            padding: 16px;
+            padding-top: 80px !important;
+        }
+    }
+
+    #dropCanvas {
+        min-height: 520px;
+        background: #f8fafc !important;
+        border: 2px dashed #cbd5e1 !important;
+        border-radius: 12px;
+        position: relative;
+    }
+
+    .field-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        cursor: move;
+        transition: all 0.15s ease;
+    }
+
+    .field-card:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 4px 10px -1px rgba(0,0,0,0.04);
+    }
+
+    #dropCanvas.drag-over {
+        border-color: #3b82f6 !important;
+        background: #eff6ff !important;
+    }
+
+    .sortable-ghost {
+        opacity: 0.42;
+        background: #eff6ff;
+        border: 2px dashed #3b82f6;
+    }
+    
+    .field-controls button {
+        opacity: 0.8;
+        transition: opacity 0.15s;
+    }
+
+    .field-controls button:hover {
+        opacity: 1;
+    }
+</style>
+
+<!-- Load SortableJS directly from public CDN to support seamless drag-n-drop reordering -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+    let draggedFieldType = null;
+    let formFields = [];
+    let selectedFieldId = null;
+    let isPreviewActive = false;
+    let fieldToDeleteId = null;
+    let sortableInstance = null;
+
+    let formSettings = {
+        submissionUrl: '/api/submissions/submit',
+        submitLabel: 'Submit',
+        redirectUrl: '/'
+    };
+
+    const fieldLabels = {
+        text: 'Text Input',
+        textarea: 'Text Area',
+        number: 'Number Input',
+        email: 'Email Input',
+        phone: 'Phone Input',
+        dropdown: 'Dropdown',
+        radio: 'Radio Buttons',
+        checkbox: 'Checkboxes',
+        date: 'Date Picker',
+        file: 'File Upload',
+        title: 'Title',
+        description: 'Description',
+        newline: 'New Line',
+        pagebreak: 'Page Break',
+        hidden: 'Hidden Field',
+        state: 'State',
+        city: 'City',
+        statecity: 'State & City',
+    };
+
+    // Auto-Save form fields / configuration state to client LocalStorage
+    function saveToLocalStorage() {
+        localStorage.setItem('formBuilder_title', document.getElementById('formTitle').value || '');
+        localStorage.setItem('formBuilder_fields', JSON.stringify(formFields));
+        localStorage.setItem('formBuilder_settings', JSON.stringify(formSettings));
+    }
+
+    // Restore cached session fields/attributes on reload
+    function loadFromLocalStorage() {
+        const savedTitle = localStorage.getItem('formBuilder_title');
+        if (savedTitle !== null) {
+            document.getElementById('formTitle').value = savedTitle;
+            document.getElementById('titleCount').innerText = savedTitle.length;
+        }
+
+        const savedFields = localStorage.getItem('formBuilder_fields');
+        if (savedFields) {
+            try {
+                formFields = JSON.parse(savedFields);
+            } catch (e) {
+                console.error("Error retrieving stored fields:", e);
+            }
+        }
+
+        const savedSettings = localStorage.getItem('formBuilder_settings');
+        if (savedSettings) {
+            try {
+                formSettings = JSON.parse(savedSettings);
+            } catch (e) {
+                console.error("Error retrieving custom settings:", e);
+            }
+        }
+
+        // populate inputs
+        document.getElementById('settingsSubmissionUrl').value = formSettings.submissionUrl;
+        document.getElementById('settingsSubmitLabel').value = formSettings.submitLabel;
+        document.getElementById('settingsRedirectUrl').value = formSettings.redirectUrl;
+        document.getElementById('displaySubmissionUrl').innerText = formSettings.submissionUrl || '/api/submissions/submit';
+    }
+
+    // Toggle navigation tab views
+    function switchTab(tab) {
+        if (isPreviewActive) {
+            togglePreviewMode(); // exit preview cleanly when switching tabs
+        }
+
+        if (tab === 'editor') {
+            document.getElementById('editorTab').classList.add('active');
+            document.getElementById('editorTab').style.borderBottom = '3px solid #3182ce';
+            document.getElementById('editorTab').style.color = '#2b6cb0';
+
+            document.getElementById('settingsTab').classList.remove('active');
+            document.getElementById('settingsTab').style.borderBottom = 'none';
+            document.getElementById('settingsTab').style.color = '#718096';
+
+            document.getElementById('editorView').classList.remove('d-none');
+            document.getElementById('settingsView').classList.add('d-none');
+            document.getElementById('previewBtn').style.display = 'inline-block';
+        } else if (tab === 'settings') {
+            document.getElementById('editorTab').classList.remove('active');
+            document.getElementById('editorTab').style.borderBottom = 'none';
+            document.getElementById('editorTab').style.color = '#718096';
+
+            document.getElementById('settingsTab').classList.add('active');
+            document.getElementById('settingsTab').style.borderBottom = '3px solid #3182ce';
+            document.getElementById('settingsTab').style.color = '#2b6cb0';
+
+            document.getElementById('editorView').classList.add('d-none');
+            document.getElementById('settingsView').classList.remove('d-none');
+            document.getElementById('previewBtn').style.display = 'none';
+        }
+    }
+
+    // Toggle interactive Preview Mode
+    function togglePreviewMode() {
+        isPreviewActive = !isPreviewActive;
+        const previewBtn = document.getElementById('previewBtn');
+        const canvasCol = document.getElementById('canvasCol');
+        const settingsTab = document.getElementById('settingsTab');
+
+        if (isPreviewActive) {
+            previewBtn.innerHTML = '✏️ Back to Editor';
+            previewBtn.className = 'btn btn-primary btn-sm px-3 py-2';
+
+            // Expand canvas container to full responsive width
+            canvasCol.className = 'col-md-12';
+            document.getElementById('rightPanelCol').style.display = 'none';
+
+            // Disable settings tab navigation to enforce preview focus
+            settingsTab.classList.add('disabled');
+            settingsTab.style.pointerEvents = 'none';
+            settingsTab.style.opacity = '0.5';
+        } else {
+            previewBtn.innerHTML = '👁️ Preview Form';
+            previewBtn.className = 'btn btn-outline-primary btn-sm px-3 py-2';
+
+            // Return layout to side-by-side editing mode
+            canvasCol.className = 'col-md-8';
+            document.getElementById('rightPanelCol').style.display = 'block';
+
+            // Enable tabs
+            settingsTab.classList.remove('disabled');
+            settingsTab.style.pointerEvents = 'auto';
+            settingsTab.style.opacity = '1';
+        }
+
+        if (sortableInstance) {
+            sortableInstance.option('disabled', isPreviewActive);
+        }
+
+        renderFields();
+    }
+
+    // Update cities option selector dynamically
+    function updateCities(fieldId) {
+        const stateVal = document.getElementById('state_select_' + fieldId).value;
+        const citySelect = document.getElementById('city_select_' + fieldId);
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        if (stateVal === 'Gujarat') {
+            citySelect.innerHTML += `
+                <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Rajkot">Rajkot</option>
+                <option value="Surat">Surat</option>
+            `;
+        } else if (stateVal === 'Maharashtra') {
+            citySelect.innerHTML += `
+                <option value="Mumbai">Mumbai</option>
+                <option value="Pune">Pune</option>
+                <option value="Nagpur">Nagpur</option>
+            `;
+        }
+    }
+
+    document.getElementById('formTitle').addEventListener('input', function () {
+        document.getElementById('titleCount').innerText = this.value.length;
+        saveToLocalStorage();
+    });
+
+    // Handle settings values inputs edits
+    document.getElementById('settingsSubmissionUrl').addEventListener('input', function() {
+        formSettings.submissionUrl = this.value || '/api/submissions/submit';
+        document.getElementById('displaySubmissionUrl').innerText = this.value || '/api/submissions/submit';
+        saveToLocalStorage();
+    });
+
+    document.getElementById('settingsSubmitLabel').addEventListener('input', function() {
+        formSettings.submitLabel = this.value || 'Submit';
+        saveToLocalStorage();
+    });
+
+    document.getElementById('settingsRedirectUrl').addEventListener('input', function() {
+        formSettings.redirectUrl = this.value || '/';
+        saveToLocalStorage();
+    });
+
+    document.querySelectorAll('.field-tile').forEach(tile => {
+        tile.addEventListener('dragstart', function () {
+            draggedFieldType = this.dataset.type;
+        });
+    });
+
+    const dropCanvas = document.getElementById('dropCanvas');
+
+    dropCanvas.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropCanvas.classList.add('drag-over');
+    });
+
+    dropCanvas.addEventListener('dragleave', function () {
+        dropCanvas.classList.remove('drag-over');
+    });
+
+    dropCanvas.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropCanvas.classList.remove('drag-over');
+
+        if (!draggedFieldType) return;
+
+        const newField = {
+            id: Date.now(),
+            type: draggedFieldType,
+            label: fieldLabels[draggedFieldType],
+            placeholder: '',
+            cssClass: '',
+            required: false,
+            options: ['Option 1', 'Option 2'],
+            min: '',
+            max: '',
+            defaultValue: '',
+        };
+
+        formFields.push(newField);
+        saveToLocalStorage();
+        renderFields();
+    });
+
+    function renderOptionsList(field) {
+        const optionsList = document.getElementById('optionsList');
+        optionsList.innerHTML = '';
+
+        field.options.forEach((option, index) => {
+            optionsList.innerHTML += `
+                <div class="input-group mb-2">
+                    <input type="text"
+                        class="form-control"
+                        value="${option}"
+                        oninput="updateOption(${index}, this.value)" style="font-size: 12px; border-radius: 6px 0 0 6px; padding: 4px 8px; height: 30px;">
+
+                    <button type="button"
+                            class="btn btn-outline-danger btn-sm"
+                            onclick="removeOption(${index})" style="border-radius: 0 6px 6px 0; font-weight: bold; height: 30px; line-height: 1;">
+                        ×
+                    </button>
+                </div>`;
+        });
+    }
+
+    function updateOption(index, value) {
+        const field = formFields.find(item => item.id === selectedFieldId);
+        if (!field) return;
+
+        field.options[index] = value;
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    function addOption() {
+        const field = formFields.find(item => item.id === selectedFieldId);
+        if (!field) return;
+
+        field.options.push('New Option');
+        renderOptionsList(field);
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    function removeOption(index) {
+        const field = formFields.find(item => item.id === selectedFieldId);
+        if (!field) return;
+
+        field.options.splice(index, 1);
+        renderOptionsList(field);
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    // Render components on canvas depending on isPreviewActive value
+    function renderFields() {
+        dropCanvas.innerHTML = '';
+
+        if (formFields.length === 0) {
+            dropCanvas.innerHTML = `
+                <div id="emptyState" class="text-center text-muted my-auto py-5">
+                    <span style="font-size: 32px; display:block;" class="mb-2">📋</span>
+                    Drag elements from the palette panel to build your custom form structure
+                </div>`;
+            return;
+        }
+
+        if (isPreviewActive) {
+            // Build interactive and functional Bootstrap Form representation
+            const formContainer = document.createElement('form');
+            formContainer.id = 'previewFormInstance';
+            formContainer.onsubmit = function(e) {
+                e.preventDefault();
+                document.getElementById('successDestUrl').innerText = formSettings.submissionUrl;
+                document.getElementById('successRedirectUrl').innerText = formSettings.redirectUrl;
+                try {
+                    const modal = new bootstrap.Modal(
+                        document.getElementById('submitSuccessModal')
+                    );
+                    modal.show();
+                } catch (err) {
+                    $('#submitSuccessModal').modal('show');
+                }
+            };
+
+            const headingTitle = document.createElement('h4');
+            headingTitle.className = 'font-weight-bold tracking-tight text-slate-800 border-bottom pb-2 mb-4';
+            headingTitle.innerText = document.getElementById('formTitle').value || 'Untitled Form Preview';
+            formContainer.appendChild(headingTitle);
+
+            formFields.forEach(field => {
+                const group = document.createElement('div');
+                group.className = `mb-3 ${field.cssClass || ''}`;
+
+                if (!['newline', 'pagebreak', 'title', 'description'].includes(field.type)) {
+                    const label = document.createElement('label');
+                    label.className = 'form-label font-weight-bold text-slate-700 mb-1';
+                    label.style.fontSize = '13px';
+                    label.innerHTML = `${field.label} ${field.required ? '<span class="text-danger">*</span>' : ''}`;
+                    group.appendChild(label);
+                }
+
+                const subContainer = document.createElement('div');
+                subContainer.innerHTML = getInteractiveFieldMarkup(field);
+                group.appendChild(subContainer);
+
+                formContainer.appendChild(group);
+            });
+
+            // Submission button at bottom
+            const submitWrapper = document.createElement('div');
+            submitWrapper.className = 'mt-4 d-flex justify-content-end';
+            submitWrapper.innerHTML = `
+                <button type="submit" class="btn btn-success px-4" style="border-radius: 8px; font-weight: 600; padding: 10px 24px;">
+                    ${formSettings.submitLabel || 'Submit'}
+                </button>
+            `;
+            formContainer.appendChild(submitWrapper);
+            dropCanvas.appendChild(formContainer);
+
+        } else {
+            // Edit dashboard canvas standard elements
+            formFields.forEach(field => {
+                const card = document.createElement('div');
+                card.className = 'field-card p-3 mb-3';
+                card.setAttribute('data-id', field.id);
+
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>
+                            ${field.label}
+                            ${field.required ? '<span class="text-danger">*</span>' : ''}
+                        </strong>
+                        <div class="field-controls d-flex" style="gap: 4px;">
+                            <button type="button" class="btn btn-sm btn-outline-primary" style="padding: 2px 6px; font-size:11px;" onclick="moveUp(${field.id})">⬆️</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary" style="padding: 2px 6px; font-size:11px;" onclick="moveDown(${field.id})">⬇️</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px; font-size:11px;" onclick="editField(${field.id})">✏️</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" style="padding: 2px 6px; font-size:11px;" onclick="duplicateField(${field.id})">📄</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" style="padding: 2px 6px; font-size:11px;" onclick="deleteField(${field.id})">🗑️</button>
+                        </div>
+                    </div>
+                    ${getFieldPreview(field)}`;
+
+                dropCanvas.appendChild(card);
+            });
+        }
+    }
+
+    // Helper: Output interactive active fields
+    function getInteractiveFieldMarkup(field) {
+        const requiredAttr = field.required ? 'required' : '';
+        const placeholderAttr = field.placeholder ? `placeholder="${field.placeholder}"` : '';
+        const minAttr = field.min ? `min="${field.min}" minlength="${field.min}"` : '';
+        const maxAttr = field.max ? `max="${field.max}" maxlength="${field.max}"` : '';
+        const defaultValueAttr = field.defaultValue ? `value="${field.defaultValue}"` : '';
+
+        if (field.type === 'textarea') {
+            return `<textarea class="form-control" ${placeholderAttr} ${requiredAttr} ${minAttr} ${maxAttr} style="border-radius:8px; font-size:13px;">${field.defaultValue || ''}</textarea>`;
+        }
+
+        if (field.type === 'dropdown') {
+            return `
+                <select class="form-control" ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">
+                    <option value="">-- Select Option --</option>
+                    ${field.options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                </select>
+            `;
+        }
+
+        if (field.type === 'radio') {
+            return `
+                <div class="py-1">
+                    ${field.options.map((option, idx) => `
+                        <div class="form-check form-check-inline me-3 mr-3 d-inline-block">
+                            <input class="form-check-input" type="radio" name="field_${field.id}" id="radio_${field.id}_${idx}" value="${option}" ${requiredAttr} style="cursor: pointer;">
+                            <label class="form-check-label" for="radio_${field.id}_${idx}" style="font-size:13px; cursor:pointer;">${option}</label>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        if (field.type === 'checkbox') {
+            return `
+                <div class="py-1">
+                    ${field.options.map((option, idx) => `
+                        <div class="form-check form-check-inline me-3 mr-3 d-inline-block">
+                            <input class="form-check-input" type="checkbox" name="field_${field.id}[]" id="chk_${field.id}_${idx}" value="${option}" style="cursor: pointer;">
+                            <label class="form-check-label" for="chk_${field.id}_${idx}" style="font-size:13px; cursor:pointer;">${option}</label>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        if (field.type === 'date') {
+            return `<input type="date" class="form-control" ${defaultValueAttr} ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">`;
+        }
+
+        if (field.type === 'file') {
+            return `<input type="file" class="form-control-file form-control" ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">`;
+        }
+
+        if (field.type === 'title') {
+            return `<h3 class="font-weight-bold" style="color: #1e293b; margin-top: 10px;">${field.label}</h3>`;
+        }
+
+        if (field.type === 'description') {
+            return `<p class="text-secondary" style="font-size: 14px; line-height: 1.5; margin-bottom: 8px;">${field.defaultValue || 'Description guidance text lines'}</p>`;
+        }
+
+        if (field.type === 'newline') {
+            return `<br>`;
+        }
+
+        if (field.type === 'pagebreak') {
+            return `<hr style="border-top: 2px dashed #cbd5e1; margin: 24px 0;">`;
+        }
+
+        if (field.type === 'hidden') {
+            return `
+                <div class="alert alert-secondary py-1 px-3 d-inline-block mb-0" style="font-size: 11px; font-family:monospace; background: #f1f5f9; border:0; border-radius: 6px; color: #475569;">
+                    🔒 [Hidden Field] value: "${field.defaultValue || ''}"
+                </div>
+                <input type="hidden" name="field_${field.id}" value="${field.defaultValue || ''}">
+            `;
+        }
+
+        if (field.type === 'state') {
+            return `
+                <select class="form-control" ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">
+                    <option value="">Select State</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                </select>
+            `;
+        }
+
+        if (field.type === 'city') {
+            return `
+                <select class="form-control" ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">
+                    <option value="">Select City</option>
+                    <option value="Ahmedabad">Ahmedabad</option>
+                    <option value="Rajkot">Rajkot</option>
+                    <option value="Mumbai">Mumbai</option>
+                    <option value="Pune">Pune</option>
+                </select>
+            `;
+        }
+
+        if (field.type === 'statecity') {
+            return `
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <select class="form-control" id="state_select_${field.id}" onchange="updateCities(${field.id})" ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">
+                            <option value="">Select State</option>
+                            <option value="Gujarat">Gujarat</option>
+                            <option value="Maharashtra">Maharashtra</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-control" id="city_select_${field.id}" ${requiredAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">
+                            <option value="">Select City</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `<input type="${field.type}" class="form-control" ${placeholderAttr} ${defaultValueAttr} ${requiredAttr} ${minAttr} ${maxAttr} style="border-radius:8px; font-size:13px; height: auto; padding: 8px 12px;">`;
+    }
+
+    function getFieldPreview(field) {
+        if (field.type === 'textarea') {
+            return `<textarea class="form-control ${field.cssClass}" placeholder="${field.placeholder}" disabled></textarea>`;
+        }
+
+        if (field.type === 'dropdown') {
+            return `
+                <select class="form-control ${field.cssClass}" disabled style="height: auto; padding: 6px 12px;">
+                    ${field.options.map(option => `<option>${option}</option>`).join('')}
+                </select>
+            `;
+        }
+
+        if (field.type === 'radio') {
+            return `
+                <div class="${field.cssClass}">
+                    ${field.options.map(option => `
+                        <label class="me-3 mr-3 font-weight-normal mb-0" style="font-size:13px;">
+                            <input type="radio" disabled> ${option}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        if (field.type === 'checkbox') {
+            return `
+                <div class="${field.cssClass}">
+                    ${field.options.map(option => `
+                        <label class="me-3 mr-3 font-weight-normal mb-0" style="font-size:13px;">
+                            <input type="checkbox" disabled> ${option}
+                        </label>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        if (field.type === 'date') {
+            return `<input type="date" class="form-control ${field.cssClass}" disabled>`;
+        }
+
+        if (field.type === 'file') {
+            return `<input type="file" class="form-control ${field.cssClass}" disabled>`;
+        }
+
+        if (field.type === 'title') {
+            return `<h4 class="font-weight-bold" style="color: #2d3748; margin-top: 5px;">${field.label}</h4>`;
+        }
+
+        if (field.type === 'description') {
+            return `<p class="text-muted mb-1" style="font-size: 13px;">${field.defaultValue || 'Description text'}</p>`;
+        }
+
+        if (field.type === 'newline') {
+            return `<br>`;
+        }
+
+        if (field.type === 'pagebreak') {
+            return `<hr style="border-top:2px dashed #cbd5e1; margin: 10px 0;">`;
+        }
+
+        if (field.type === 'hidden') {
+            return `
+                <input type="text"
+                    class="form-control font-monospace" style="font-size: 11px; background: #f8fafc; height: auto; padding: 6px 12px;"
+                    value="🔒 [Hidden Field] default: ${field.defaultValue || 'None'}"
+                    disabled>
+            `;
+        }
+
+        if (field.type === 'state') {
+            return `
+                <select class="form-control" disabled style="height: auto; padding: 6px 12px;">
+                    <option>Gujarat</option>
+                    <option>Maharashtra</option>
+                </select>
+            `;
+        }
+
+        if (field.type === 'city') {
+            return `
+                <select class="form-control" disabled style="height: auto; padding: 6px 12px;">
+                    <option>Ahmedabad</option>
+                    <option>Rajkot</option>
+                </select>
+            `;
+        }
+
+        if (field.type === 'statecity') {
+            return `
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <select class="form-control" disabled style="height: auto; padding: 6px 12px;">
+                            <option>State</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-control" disabled style="height: auto; padding: 6px 12px;">
+                            <option>City</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+        }
+
+        return `<input type="${field.type}" class="form-control ${field.cssClass}" placeholder="${field.placeholder}" disabled>`;
+    }
+
+    function editField(id) {
+        selectedFieldId = id;
+
+        const field = formFields.find(item => item.id === id);
+        if (!field) return;
+
+        const isOptionField = ['dropdown', 'radio', 'checkbox'].includes(field.type);
+
+        document.getElementById('addFieldsPanel').classList.add('d-none');
+        document.getElementById('fieldOptionsPanel').classList.remove('d-none');
+
+        document.getElementById('addFieldsTab').classList.remove('active');
+        document.getElementById('addFieldsTab').classList.add('text-secondary');
+        document.getElementById('fieldOptionsTab').classList.add('active');
+        document.getElementById('fieldOptionsTab').classList.remove('text-secondary');
+
+        document.getElementById('optionLabel').value = field.label;
+        document.getElementById('optionPlaceholder').value = field.placeholder || '';
+        document.getElementById('optionClass').value = field.cssClass || '';
+        document.getElementById('optionRequired').checked = field.required || false;
+        document.getElementById('optionsWrapper').classList.toggle('d-none', !isOptionField);
+
+        const hasPlaceholder = !['radio', 'checkbox', 'date', 'file', 'title', 'description', 'newline', 'pagebreak', 'hidden', 'state', 'city', 'statecity'].includes(field.type);
+        document.getElementById('placeholderWrapper').classList.toggle('d-none', !hasPlaceholder);
+
+        if (isOptionField) {
+            renderOptionsList(field);
+        }
+        document.getElementById('optionMin').value = field.min || '';
+        document.getElementById('optionMax').value = field.max || '';
+        document.getElementById('optionDefault').value = field.defaultValue || '';
+    }
+
+    function duplicateField(id) {
+        const index = formFields.findIndex(field => field.id === id);
+        if (index === -1) return;
+
+        const copiedField = {
+            ...formFields[index],
+            id: Date.now()
+        };
+
+        formFields.splice(index + 1, 0, copiedField);
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    // Modal popup confirmation before deleting element
+    function deleteField(id) {
+        fieldToDeleteId = id;
+        try {
+            const modal = new bootstrap.Modal(
+                document.getElementById('deleteConfirmModal')
+            );
+            modal.show();
+        } catch (e) {
+            try {
+                $('#deleteConfirmModal').modal('show');
+            } catch (err) {
+                // If modals completely fail, directly confirm delete without block prompt
+                confirmDeleteField();
+            }
+        }
+    }
+
+    function confirmDeleteField() {
+        if (fieldToDeleteId === null) return;
+        formFields = formFields.filter(field => field.id !== fieldToDeleteId);
+
+        if (selectedFieldId === fieldToDeleteId) {
+            selectedFieldId = null;
+            showAddFieldsPanel();
+        }
+
+        fieldToDeleteId = null;
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        confirmDeleteField();
+        try {
+            $('#deleteConfirmModal').modal('hide');
+        } catch (e) {}
+    });
+
+    function updateSelectedField() {
+        const field = formFields.find(item => item.id === selectedFieldId);
+        if (!field) return;
+
+        field.label = document.getElementById('optionLabel').value;
+        field.placeholder = document.getElementById('optionPlaceholder').value;
+        field.cssClass = document.getElementById('optionClass').value;
+        field.required = document.getElementById('optionRequired').checked;
+        field.min = document.getElementById('optionMin').value;
+        field.max = document.getElementById('optionMax').value;
+        field.defaultValue = document.getElementById('optionDefault').value;
+
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    document.getElementById('optionLabel').addEventListener('input', updateSelectedField);
+    document.getElementById('optionPlaceholder').addEventListener('input', updateSelectedField);
+    document.getElementById('optionClass').addEventListener('input', updateSelectedField);
+    document.getElementById('optionRequired').addEventListener('change', updateSelectedField);
+
+    document.getElementById('addFieldsTab').addEventListener('click', showAddFieldsPanel);
+    document.getElementById('optionMin').addEventListener('input', updateSelectedField);
+    document.getElementById('optionMax').addEventListener('input', updateSelectedField);
+    document.getElementById('optionDefault').addEventListener('input', updateSelectedField);
+
+    function showAddFieldsPanel() {
+        document.getElementById('addFieldsPanel').classList.remove('d-none');
+        document.getElementById('fieldOptionsPanel').classList.add('d-none');
+
+        document.getElementById('addFieldsTab').classList.add('active');
+        document.getElementById('addFieldsTab').classList.remove('text-secondary');
+        document.getElementById('fieldOptionsTab').classList.remove('active');
+        document.getElementById('fieldOptionsTab').classList.add('text-secondary');
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', function () {
+        const formSchema = {
+            title: document.getElementById('formTitle').value || 'Untitled Form',
+            settings: formSettings,
+            fields: formFields
+        };
+
+        document.getElementById('jsonOutput').textContent =
+            JSON.stringify(formSchema, null, 2);
+
+        try {
+            const modal = new bootstrap.Modal(
+                document.getElementById('jsonModal')
+            );
+            modal.show();
+        } catch (e) {
+            $('#jsonModal').modal('show');
+        }
+    });
+
+    function clearForm() {
+        formFields = [];
+        selectedFieldId = null;
+        formSettings = {
+            submissionUrl: '/api/submissions/submit',
+            submitLabel: 'Submit',
+            redirectUrl: '/'
+        };
+
+        document.getElementById('formTitle').value = '';
+        document.getElementById('titleCount').innerText = '0';
+
+        // Reset inputs
+        document.getElementById('settingsSubmissionUrl').value = formSettings.submissionUrl;
+        document.getElementById('settingsSubmitLabel').value = formSettings.submitLabel;
+        document.getElementById('settingsRedirectUrl').value = formSettings.redirectUrl;
+        document.getElementById('displaySubmissionUrl').innerText = formSettings.submissionUrl;
+
+        localStorage.removeItem('formBuilder_title');
+        localStorage.removeItem('formBuilder_fields');
+        localStorage.removeItem('formBuilder_settings');
+
+        showAddFieldsPanel();
+        renderFields();
+    }
+
+    document.getElementById('cancelBtn').addEventListener('click', function () {
+        try {
+            const modal = new bootstrap.Modal(
+                document.getElementById('clearConfirmModal')
+            );
+            modal.show();
+        } catch (e) {
+            try {
+                $('#clearConfirmModal').modal('show');
+            } catch (err) {
+                // If modals completely fail, clear the form directly without block prompt
+                clearForm();
+            }
+        }
+    });
+
+    document.getElementById('confirmClearBtn').addEventListener('click', function() {
+        clearForm();
+    });
+
+    function moveUp(id) {
+        const index = formFields.findIndex(f => f.id === id);
+
+        if (index <= 0) return;
+
+        [formFields[index], formFields[index - 1]] =
+        [formFields[index - 1], formFields[index]];
+
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    function moveDown(id) {
+        const index = formFields.findIndex(f => f.id === id);
+
+        if (index === -1 || index === formFields.length - 1) return;
+
+        [formFields[index], formFields[index + 1]] =
+        [formFields[index + 1], formFields[index]];
+
+        saveToLocalStorage();
+        renderFields();
+    }
+
+    // Initialize triggers on page load
+    document.addEventListener("DOMContentLoaded", function() {
+        loadFromLocalStorage();
+
+        const dropCanvasElement = document.getElementById('dropCanvas');
+        if (dropCanvasElement && typeof Sortable !== 'undefined') {
+            sortableInstance = new Sortable(dropCanvasElement, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                draggable: '.field-card',
+                onEnd: function(evt) {
+                    const oldIdx = evt.oldIndex;
+                    const newIdx = evt.newIndex;
+                    if (oldIdx !== newIdx) {
+                        const moved = formFields.splice(oldIdx, 1)[0];
+                        formFields.splice(newIdx, 0, moved);
+                        saveToLocalStorage();
+                        renderFields();
+                    }
+                }
+            });
+        }
+
+        renderFields();
+    });
+</script>
+@endsection
